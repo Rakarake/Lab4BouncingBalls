@@ -27,11 +27,12 @@ class Model {
 
 		// Initialize the model with a few balls
 		balls = new Ball[2];
-		balls[0] = new Ball(width / 3-1, height * 0.9-1, 1.2, 1.6, 0.2);
+		balls[0] = new Ball(width / 3 - 1, height * 0.9, 1.2, 1.6, 0.2);
 		balls[1] = new Ball(2 * width / 3, height * 0.7, -0.6, 0.6, 0.3);
 	}
 
 	void step(double deltaT) {
+		boolean hasColided = false;
 		// TODO this method implements one step of simulation with a step deltaT
 		for (Ball b : balls) {
 			double offset = 0.005;
@@ -52,11 +53,30 @@ class Model {
 			b.y += deltaT * b.vy;
 
 			// Check if collisionj
-
+			double offset2 = 0.01;
 			for (Ball a : balls) {
-				if (a != b)
+				if (a != b && !hasColided)
 					if (Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2)) <= a.radius + b.radius) {
-						System.out.println("WOW");
+						hasColided = true;
+						double d;
+
+						if (b.y > a.y && b.x > a.x) {
+							d = Math.atan((b.y - a.y) / (b.x - a.x));
+						} else if (a.y > b.y && b.x > a.x) {
+							d = Math.atan((b.x - a.x) / (a.y - b.y)) + Math.PI / 2;
+						} else if (a.y > b.y && a.x > b.x) {
+							d = Math.atan((a.y - b.y) / (a.x - b.x));
+						} else {
+							d = Math.atan((a.x - b.x) / (b.y - a.y)) + Math.PI / 2;
+						}
+						rotateVelocity(a, d);
+						rotateVelocity(b, d);
+						a.vy *= -1;
+						a.y += offset2 * Math.signum(a.vy);
+						b.vy *= -1;
+						b.y += offset2 * Math.signum(b.vy);
+						rotateVelocity(a, -d);
+						rotateVelocity(b, -d);
 
 					}
 			}
@@ -69,7 +89,7 @@ class Model {
 	}
 
 	Vector2 rotate(Vector2 a, double d) {
-		a.x = a.x * Math.cos(d) - a.y * Math.sin(d);
+		d = a.x = a.x * Math.cos(d) - a.y * Math.sin(d);
 		a.y = a.x * Math.sin(d) + a.y * Math.cos(d);
 		return a;
 	}
