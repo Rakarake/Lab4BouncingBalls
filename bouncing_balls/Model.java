@@ -40,10 +40,12 @@ class Model {
 			if (b.x < b.radius || b.x > areaWidth - b.radius) {
 				b.vx *= -1; // change direction of ball
 				b.x += offset * Math.signum(b.vx);
+			
 			}
 			if (b.y < b.radius || b.y > areaHeight - b.radius) {
 				b.vy *= -1;
 				b.y += offset * Math.signum(b.vy);
+				
 			}
 
 			// compute new position according to the speed of the ball
@@ -58,46 +60,26 @@ class Model {
 				if (a != b && !hasColided)
 					if (Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2)) <= a.radius + b.radius) {
 						hasColided = true;
-						double d;
-
-						if (b.y > a.y && b.x > a.x) {
-							d = Math.atan((b.y - a.y) / (b.x - a.x));
-						} else if (a.y > b.y && b.x > a.x) {
-							d = Math.atan((b.x - a.x) / (a.y - b.y)) + Math.PI / 2;
-						} else if (a.y > b.y && a.x > b.x) {
-							d = Math.atan((a.y - b.y) / (a.x - b.x));
-						} else {
-							d = Math.atan((a.x - b.x) / (b.y - a.y)) + Math.PI / 2;
-						}
-						rotateVelocity(a, d);
-						rotateVelocity(b, d);
-						a.vy *= -1;
-						a.y += offset2 * Math.signum(a.vy);
-						b.vy *= -1;
-						b.y += offset2 * Math.signum(b.vy);
-						rotateVelocity(a, -d);
-						rotateVelocity(b, -d);
-
+						
+						Ball olda = a.copy();
+						Ball oldb = b.copy();
+						a.bounce(oldb);
+						b.bounce(olda);
 					}
 			}
 		}
 
 	}
 
-	void rotateVelocity(Ball b, double d) {
-		rotate(new Vector2(b.vx, b.vy), d);
-	}
-
-	Vector2 rotate(Vector2 a, double d) {
-		d = a.x = a.x * Math.cos(d) - a.y * Math.sin(d);
-		a.y = a.x * Math.sin(d) + a.y * Math.cos(d);
-		return a;
-	}
-
 	/**
 	 * Simple inner class describing balls.
 	 */
 	class Ball {
+		/**
+		 * Position, speed, and radius of the ball. You may wish to add other
+		 * attributes.
+		 */
+		double x, y, vx, vy, radius;
 
 		Ball(double x, double y, double vx, double vy, double r) {
 			this.x = x;
@@ -107,28 +89,83 @@ class Model {
 			this.radius = r;
 		}
 
+		public Ball copy() {
+			return new Ball(x, y, vx, vy, radius);
+		}
+
 		public double getMass() {
 			return radius * radius * Math.PI;
 		}
 
-		/**
-		 * Position, speed, and radius of the ball. You may wish to add other
-		 * attributes.
-		 */
-		double x, y, vx, vy, radius;
+		public void bounce(Ball ball) {
+			Vector2 vel1 = new Vector2(vx, vy);
+			Vector2 vel2 = new Vector2(ball.vx, ball.vy);
+			Vector2 pos1 = new Vector2(x, y);
+			Vector2 pos2 = new Vector2(ball.x, ball.y);
+			double mass1 = getMass();
+			double mass2 = ball.getMass();
+			
+			double massScalar = 2 * mass2 / (mass1 + mass2);
+			double vectorScalar = (vel1.subtract(vel2)).dotProduct(pos1.subtract(pos2)) / Math.pow(pos2.subtract(pos1).length(), 2);
+
+			Vector2 newVel = vel1.subtract(pos1.subtract(pos2).scale(massScalar * vectorScalar));
+			vx = newVel.x;
+			vy = newVel.y;
+		}
+
+		// Solution based on our linear algebra
+		public void bounce2(Ball ball) {
+			Vector2 vel1 = new Vector2(vx, vy);
+			Vector2 vel2 = new Vector2(ball.vx, ball.vy);
+			Vector2 pos1 = new Vector2(x, y);
+			Vector2 pos2 = new Vector2(ball.x, ball.y);
+			double mass1 = getMass();
+			double mass2 = ball.getMass();
+
+			// No setup anymore!
+			Vector2 diffVec = pos1.subtract(pos2);
+			Vector2 base1 = diffVec.scale(1/diffVec.length());
+			Vector2 base2 = new Vector2(x, y);
+		}
 	}
 
-	class Vector2 {
+	public class Vector2 {
+		protected double x,y;
+
 		Vector2(double x, double y) {
 			this.x = x;
 			this.y = y;
 		}
 
-		Vector2(Vector2 old) {
-			this.x = old.x;
-			this.y = old.y;
+		public Vector2 copy() {
+			return new Vector2(x, y);
 		}
 
-		double x, y;
+		public double dotProduct (Vector2 vec) {
+			return x * vec.x + y * vec.y;
+		}
+
+		public double length() {
+			return Math.sqrt(x*x + y*y);
+		}
+
+		public Vector2 add(Vector2 vec) {
+			return new Vector2(x + vec.x, y + vec.y);
+		}
+
+		public Vector2 subtract(Vector2 vec) {
+			return new Vector2(x - vec.x, y - vec.y);
+		}
+
+		public Vector2 scale(double scalar) {
+			return new Vector2(x*scalar, y*scalar);
+		}
+
+		public Vector2 rotate(Vector2 a, double d) {
+			d = 2*Math.PI - d;
+			a.x = a.x * Math.cos(d) - a.y * Math.sin(d);
+			a.y = a.x * Math.sin(d) + a.y * Math.cos(d);
+			return a;
+		}
 	}
 }
