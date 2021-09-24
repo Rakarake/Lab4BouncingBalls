@@ -5,17 +5,17 @@ import java.util.List;
 
 /**
  * The physics model.
- * 
+ *
  * This class is where you should implement your bouncing balls model.
- * 
+ *
  * The code has intentionally been kept as simple as possible, but if you wish,
  * you can improve the design.
- * 
+ *
  * @author Simon Robillard
  *
  */
 
-class Model {
+public class Model {
 
 	double areaWidth, areaHeight;
 
@@ -29,6 +29,9 @@ class Model {
 		balls = new Ball[2];
 		balls[0] = new Ball(width / 3 - 1, height * 0.9, 1.2, 1.6, 0.2);
 		balls[1] = new Ball(2 * width / 3, height * 0.7, -0.6, 0.6, 0.3);
+		Vector2 zero = new Vector2(1,0);
+		Vector2 q = new Vector2(1,1);
+		Vector2 o = new Vector2(1,-1);
 	}
 
 	void step(double deltaT) {
@@ -40,17 +43,17 @@ class Model {
 			if (b.x < b.radius || b.x > areaWidth - b.radius) {
 				b.vx *= -1; // change direction of ball
 				b.x += offset * Math.signum(b.vx);
-			
+
 			}
 			if (b.y < b.radius || b.y > areaHeight - b.radius) {
 				b.vy *= -1;
 				b.y += offset * Math.signum(b.vy);
-				
+
 			}
 
 			// compute new position according to the speed of the ball
 			b.vx += deltaT * 0;
-			b.vy += deltaT * (-1.82);
+			b.vy += deltaT * (-2.82);
 			b.x += deltaT * b.vx;
 			b.y += deltaT * b.vy;
 
@@ -60,16 +63,106 @@ class Model {
 				if (a != b && !hasColided)
 					if (Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2)) <= a.radius + b.radius) {
 						hasColided = true;
-						
-						Ball olda = a.copy();
-						Ball oldb = b.copy();
-						a.bounce(oldb);
-						b.bounce(olda);
+
+						//Ball olda = a.copy();
+						//Ball oldb = b.copy();
+						//a.bounce(oldb);
+						//b.bounce(olda);
+
+						Vector2 midle = new Vector2(a.x-b.x,a.y-b.y);
+						double d = lefAngel(midle,new Vector2(0,1));
+						rotateBall(a,d);
+						rotateBall(b,d);
+
+
+						a.vy *= -1;
+						b.vy *= -1;
+						rotateBall(a,inv(d));
+						rotateBall(b,inv(d));
+
+						System.out.println(midle.x);
+						rotate(midle,d);
+						System.out.println(midle.x);
+						rotate(midle,inv(d));
+						System.out.println(midle.x);
+
+
 					}
 			}
 		}
 
 	}
+	double lefAngel(Vector2 b,Vector2 a){
+		Vector2 zero = new Vector2(1,0);
+		double aDeg = angeBetweenVectors(zero,a);
+		double bDeg = angeBetweenVectors(zero,b);
+
+		int aSign = (int)Math.signum(a.y);
+		int bSign = (int)Math.signum(b.y);
+
+		if(a.y == 0){
+			aSign = 1;
+		}
+		if(b.y == 0){
+			bSign = 1;
+		}
+
+
+		if(aSign == 1 && bSign == 1 ) {
+			if(aDeg > bDeg){
+				return angeBetweenVectors(a,b);
+			}else {
+				return inv( angeBetweenVectors(a,b)) ;
+			}
+
+		}else if(aSign == 1 && bSign == -1) {
+			if(aDeg + bDeg > Math.PI){
+				return inv(angeBetweenVectors(a, b));
+			}else {
+				return angeBetweenVectors(a, b);
+			}
+
+
+		}else if(aSign == -1 && bSign == 1){
+			if(aDeg + bDeg > Math.PI){
+				return angeBetweenVectors(a, b);
+			}else {
+				return inv(angeBetweenVectors(a, b));
+			}
+		}else{
+			if(aDeg > bDeg){
+				return inv( angeBetweenVectors(a,b));
+			}else {
+				return  angeBetweenVectors(a,b);
+			}
+		}
+
+
+
+	}
+	double inv(double d) {
+		return  Math.PI * 2 -d;
+	}
+	double angeBetweenVectors(Vector2 a, Vector2 b){
+		return   Math.acos((a.x * b.x + a.y * b.y) / (a.length()*b.length()));
+	}
+
+	void rotateBall(Ball a,double d){
+		double oldVx = a.vx;
+		double oldVy = a.vy;
+
+		a.vx = Math.cos(d) * oldVx - Math.sin(d) * oldVy;
+		a.vy = Math.sin(d)* oldVx+ Math.cos(d) * oldVy;
+	}
+	Vector2 rotate(Vector2 a,double d){
+		double oldVx = a.x;
+		double oldVy = a.y;
+
+		a.x = Math.cos(d) * oldVx - Math.sin(d) * oldVy;
+		a.y = Math.sin(d)* oldVx+ Math.cos(d) * oldVy;
+		return a;
+	}
+
 
 	/**
 	 * Simple inner class describing balls.
@@ -104,7 +197,7 @@ class Model {
 			Vector2 pos2 = new Vector2(ball.x, ball.y);
 			double mass1 = getMass();
 			double mass2 = ball.getMass();
-			
+
 			double massScalar = 2 * mass2 / (mass1 + mass2);
 			double vectorScalar = (vel1.subtract(vel2)).dotProduct(pos1.subtract(pos2)) / Math.pow(pos2.subtract(pos1).length(), 2);
 
