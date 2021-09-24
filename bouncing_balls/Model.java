@@ -27,10 +27,12 @@ public class Model {
 
 		// Initialize the model with a few balls
 		balls = new Ball[2];
-		// balls[0] = new Ball(width / 2, height * 0.5, 0.6, -1.2, 0.2);
-		// balls[1] = new Ball(width / 2, height * 0.2, -0.3, 2.4, 0.3);
+		//balls[0] = new Ball(width / 2, height * 0.5, 0.6, -1.2, 0.2);
+		//balls[1] = new Ball(width / 2, height * 0.2, -0.3, 2.4, 0.3);
+		//balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
+		//balls[1] = new Ball(width / 2 + 1, height * 0.2, 0, 0, 0.3);
 		balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
-		balls[1] = new Ball(width / 2 + 1, height * 0.2, 0, 0, 0.3);
+		balls[1] = new Ball(width / 2, height * 0.2, 0, 0, 0.3);
 	}
 
 	void step(double deltaT) {
@@ -40,21 +42,21 @@ public class Model {
 			double acc = -1.82;
 			double offset = 0.03;
 			// Detect collision with the border, the next frame
-			Ball ballNextStep = b.copy();
-			ballNextStep.vx += deltaT * 0;
-			ballNextStep.vy += deltaT * acc;
-			ballNextStep.x += deltaT * b.vx;
-			ballNextStep.y += deltaT * b.vy;
-			if (ballNextStep.x < ballNextStep.radius || ballNextStep.x > areaWidth - ballNextStep.radius) {
+			Ball bNext = b.copy();
+			accelerate(bNext, deltaT);
+			moveBall(bNext, deltaT);
+			if (bNext.x < bNext.radius || bNext.x > areaWidth - bNext.radius) {
 				b.vx *= -1; // change direction of ball
-				b.vy -= deltaT * (acc);
+				//b.vy -= deltaT * (acc);
 				// b.x += offset * Math.signum(b.vx);
+				moveBall(b, deltaT);
 				continue;
 			}
-			if (ballNextStep.y < ballNextStep.radius || ballNextStep.y > areaHeight - ballNextStep.radius) {
+			if (bNext.y < bNext.radius || bNext.y > areaHeight - bNext.radius) {
 				b.vy *= -1;
-				b.vy -= deltaT * acc;
+				//b.vy -= deltaT * acc;
 				// b.y += offset * Math.signum(b.vy);
+				moveBall(b, deltaT);
 				continue;
 			}
 
@@ -62,14 +64,15 @@ public class Model {
 
 			// Check if collision
 			for (Ball a : balls) {
+				Ball aNext = a.copy();
 				if (a != b && !hasColided)
-					if (Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2)) <= a.radius + b.radius) {
+					if (Math.sqrt(Math.pow(bNext.x - aNext.x, 2) + Math.pow(bNext.y - aNext.y, 2)) <= aNext.radius + bNext.radius) {
 						hasColided = true;
 
-						Ball olda = a.copy();
-						Ball oldb = b.copy();
-						a.bounce(oldb);
-						b.bounce(olda);
+						Ball aOld = a.copy();
+						Ball bOld = b.copy();
+						a.bounce(bOld);
+						b.bounce(aOld);
 
 						Vector2 midle = new Vector2(a.x - b.x, a.y - b.y);
 						// double d = lefAngel(midle,new Vector2(0,1));
@@ -80,17 +83,28 @@ public class Model {
 						// rotateBall(a,inv(d));
 						// rotateBall(b,inv(d));
 
-						a.x += offset * midle.x / midle.length();
-						a.y += offset * midle.y / midle.length();
-						b.x -= offset * midle.x / midle.length();
-						b.y -= offset * midle.y / midle.length();
+						//a.x += offset * midle.x / midle.length();
+						//a.y += offset * midle.y / midle.length();
+						//b.x -= offset * midle.x / midle.length();
+						//b.y -= offset * midle.y / midle.length();
+						accelerate(b, deltaT);
+						moveBall(b, deltaT);
+						return;
 					}
 			}
-			b.vx += deltaT * 0;
-			b.vy += deltaT * acc;
-			b.x += deltaT * b.vx;
-			b.y += deltaT * b.vy;
+			accelerate(b, deltaT);
+			moveBall(b, deltaT);
 		}
+	}
+
+	void accelerate(Ball b, double deltaT) {
+		b.vx += deltaT * 0;
+		b.vy += deltaT * -20.82;
+	}
+
+	void moveBall(Ball b, double deltaT) {
+		b.x += deltaT * b.vx;
+		b.y += deltaT * b.vy;
 	}
 
 	void offsettAndCompensate(Ball b, double offset, Vector2 v, double acc) {
