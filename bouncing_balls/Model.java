@@ -27,14 +27,16 @@ public class Model {
 
 		// Initialize the model with a few balls
 		balls = new Ball[2];
+
+		// Free Balls
 		balls[0] = new Ball(width / 2, height * 0.5, 0.6, -1.2, 0.2);
 		balls[1] = new Ball(width / 2, height * 0.2, -0.3, 2.4, 0.3);
+		// Balls on floor
 		//balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
 		//balls[1] = new Ball(width / 2 + 1, height * 0.2, 0, 0, 0.3);
+		// Balls on eachother
 		//balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
 		//balls[1] = new Ball(width / 2, height * 0.2, 0, 0, 0.3);
-		//balls[0] = new Ball(width / 2, height * 0.5, -2, 4, 0.2);
-		//balls[1] = new Ball(width / 2, height * 0.2, 0.2, -4, 0.3);
 	}
 
 	void step(double deltaT) {
@@ -46,7 +48,7 @@ public class Model {
 			// Detect collision with the border, the next frame
 			Ball bNext = b.copy();
 			accelerate(bNext, deltaT);
-			moveBall(bNext, deltaT);
+			moveBall(bNext, deltaT/2);
 			if (bNext.x < bNext.radius || bNext.x > areaWidth - bNext.radius) {
 				b.vx *= -1; // change direction of ball
 				//b.vy -= deltaT * (acc);
@@ -77,6 +79,8 @@ public class Model {
 						b.bounce(aOld);
 
 						Vector2 midle = new Vector2(a.x - b.x, a.y - b.y);
+						accelerate(a, -deltaT);
+						accelerate(b, -deltaT);
 						// double d = lefAngel(midle,new Vector2(0,1));
 						// rotateBall(a,d);
 						// rotateBall(b,d);
@@ -99,7 +103,7 @@ public class Model {
 
 	void accelerate(Ball b, double deltaT) {
 		b.vx += deltaT * 0;
-		b.vy += deltaT * -30.82;
+		b.vy += deltaT * -10.82;
 	}
 
 	void moveBall(Ball b, double deltaT) {
