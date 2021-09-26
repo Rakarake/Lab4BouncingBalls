@@ -29,42 +29,30 @@ public class Model {
 		balls = new Ball[2];
 		balls[0] = new Ball(width / 2, height * 0.5, 0.6, -1.2, 0.2);
 		balls[1] = new Ball(width / 2, height * 0.2, -0.3, 2.4, 0.3);
-		//balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
-		//balls[1] = new Ball(width / 2 + 1, height * 0.2, 0, 0, 0.3);
-		//balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
-		//balls[1] = new Ball(width / 2, height * 0.2, 0, 0, 0.3);
-		//balls[0] = new Ball(width / 2, height * 0.5, -2, 4, 0.2);
-		//balls[1] = new Ball(width / 2, height * 0.2, 0.2, -4, 0.3);
 	}
 
 	void step(double deltaT) {
 		boolean hasColided = false;
-		// TODO this method implements one step of simulation with a step deltaT
 		for (Ball b : balls) {
-			double acc = -1.82;
-			double offset = 0.03;
-			// Detect collision with the border, the next frame
+			// We check for collisions "next" step, so that the balls don't end up inside eachother and the walls.
+			// This is fine since deltaT is small.
 			Ball bNext = b.copy();
 			accelerate(bNext, deltaT);
 			moveBall(bNext, deltaT);
+
+			// Check wall collision
 			if (bNext.x < bNext.radius || bNext.x > areaWidth - bNext.radius) {
-				b.vx *= -1; // change direction of ball
-				//b.vy -= deltaT * (acc);
-				// b.x += offset * Math.signum(b.vx);
+				b.vx *= -1; 
 				moveBall(b, deltaT);
 				continue;
 			}
 			if (bNext.y < bNext.radius || bNext.y > areaHeight - bNext.radius) {
 				b.vy *= -1;
-				//b.vy -= deltaT * acc;
-				// b.y += offset * Math.signum(b.vy);
 				moveBall(b, deltaT);
 				continue;
 			}
 
-			// compute new position according to the speed of the ball
-
-			// Check if collision
+			// Check if balls collide
 			for (Ball a : balls) {
 				Ball aNext = a.copy();
 				if (a != b && !hasColided)
@@ -76,22 +64,12 @@ public class Model {
 						a.bounce(bOld);
 						b.bounce(aOld);
 
-						Vector2 midle = new Vector2(a.x - b.x, a.y - b.y);
-						// double d = lefAngel(midle,new Vector2(0,1));
-						// rotateBall(a,d);
-						// rotateBall(b,d);
-						// a.vy *= -1;
-						// b.vy *= -1;
-						// rotateBall(a,inv(d));
-						// rotateBall(b,inv(d));
-
-						//a.x += offset * midle.x / midle.length();
-						//a.y += offset * midle.y / midle.length();
-						//b.x -= offset * midle.x / midle.length();
-						//b.y -= offset * midle.y / midle.length();
-					
+						// Cancel acceleration (no acceleration when boucning)
+						accelerate(a, -deltaT);
+						accelerate(b, -deltaT);
 					}
 			}
+			// Move and accelerate the ball
 			accelerate(b, deltaT);
 			moveBall(b, deltaT);
 		}
@@ -99,91 +77,12 @@ public class Model {
 
 	void accelerate(Ball b, double deltaT) {
 		b.vx += deltaT * 0;
-		b.vy += deltaT * -30.82;
+		b.vy += deltaT * -9.82;
 	}
 
 	void moveBall(Ball b, double deltaT) {
 		b.x += deltaT * b.vx;
 		b.y += deltaT * b.vy;
-	}
-
-	void offsettAndCompensate(Ball b, double offset, Vector2 v, double acc) {
-		b.x += offset * v.x;
-		b.y += offset * v.y;
-
-		double timeStep = v.y * offset / b.vy;
-		b.vy -= timeStep * acc;
-
-	}
-
-	double lefAngel(Vector2 b, Vector2 a) {
-		Vector2 zero = new Vector2(1, 0);
-		double aDeg = angeBetweenVectors(zero, a);
-		double bDeg = angeBetweenVectors(zero, b);
-
-		int aSign = (int) Math.signum(a.y);
-		int bSign = (int) Math.signum(b.y);
-
-		if (a.y == 0) {
-			aSign = 1;
-		}
-		if (b.y == 0) {
-			bSign = 1;
-		}
-
-		if (aSign == 1 && bSign == 1) {
-			if (aDeg > bDeg) {
-				return angeBetweenVectors(a, b);
-			} else {
-				return inv(angeBetweenVectors(a, b));
-			}
-
-		} else if (aSign == 1 && bSign == -1) {
-			if (aDeg + bDeg > Math.PI) {
-				return inv(angeBetweenVectors(a, b));
-			} else {
-				return angeBetweenVectors(a, b);
-			}
-
-		} else if (aSign == -1 && bSign == 1) {
-			if (aDeg + bDeg > Math.PI) {
-				return angeBetweenVectors(a, b);
-			} else {
-				return inv(angeBetweenVectors(a, b));
-			}
-		} else {
-			if (aDeg > bDeg) {
-				return inv(angeBetweenVectors(a, b));
-			} else {
-				return angeBetweenVectors(a, b);
-			}
-		}
-
-	}
-
-	double inv(double d) {
-		return Math.PI * 2 - d;
-	}
-
-	double angeBetweenVectors(Vector2 a, Vector2 b) {
-		return Math.acos((a.x * b.x + a.y * b.y) / (a.length() * b.length()));
-	}
-
-	void rotateBall(Ball a, double d) {
-		double oldVx = a.vx;
-		double oldVy = a.vy;
-
-		a.vx = Math.cos(d) * oldVx - Math.sin(d) * oldVy;
-		a.vy = Math.sin(d) * oldVx + Math.cos(d) * oldVy;
-	}
-
-	Vector2 rotate(Vector2 a, double d) {
-		double oldVx = a.x;
-		double oldVy = a.y;
-
-		a.x = Math.cos(d) * oldVx - Math.sin(d) * oldVy;
-		a.y = Math.sin(d) * oldVx + Math.cos(d) * oldVy;
-		return a;
 	}
 
 	/**
@@ -227,21 +126,6 @@ public class Model {
 			Vector2 newVel = vel1.subtract(pos1.subtract(pos2).scale(massScalar * vectorScalar));
 			vx = newVel.x;
 			vy = newVel.y;
-		}
-
-		// Solution based on our linear algebra
-		public void bounce2(Ball ball) {
-			Vector2 vel1 = new Vector2(vx, vy);
-			Vector2 vel2 = new Vector2(ball.vx, ball.vy);
-			Vector2 pos1 = new Vector2(x, y);
-			Vector2 pos2 = new Vector2(ball.x, ball.y);
-			double mass1 = getMass();
-			double mass2 = ball.getMass();
-
-			// No setup anymore!
-			Vector2 diffVec = pos1.subtract(pos2);
-			Vector2 base1 = diffVec.scale(1 / diffVec.length());
-			Vector2 base2 = new Vector2(x, y);
 		}
 	}
 
