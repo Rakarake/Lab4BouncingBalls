@@ -27,12 +27,14 @@ public class Model {
 
 		// Initialize the model with a few balls
 		balls = new Ball[2];
-		//balls[0] = new Ball(width / 2, height * 0.5, 0.6, -1.2, 0.2);
-		//balls[1] = new Ball(width / 2, height * 0.2, -0.3, 2.4, 0.3);
+		balls[0] = new Ball(width / 2, height * 0.5, 0.6, -1.2, 0.2);
+		balls[1] = new Ball(width / 2, height * 0.2, -0.3, 2.4, 0.3);
 		//balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
 		//balls[1] = new Ball(width / 2 + 1, height * 0.2, 0, 0, 0.3);
-		balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
-		balls[1] = new Ball(width / 2, height * 0.2, 0, 0, 0.3);
+		//balls[0] = new Ball(width / 2, height * 0.5, 0, 0, 0.2);
+		//balls[1] = new Ball(width / 2, height * 0.2, 0, 0, 0.3);
+		//balls[0] = new Ball(width / 2, height * 0.5, -2, 4, 0.2);
+		//balls[1] = new Ball(width / 2, height * 0.2, 0.2, -4, 0.3);
 	}
 
 	void step(double deltaT) {
@@ -87,9 +89,7 @@ public class Model {
 						//a.y += offset * midle.y / midle.length();
 						//b.x -= offset * midle.x / midle.length();
 						//b.y -= offset * midle.y / midle.length();
-						accelerate(b, deltaT);
-						moveBall(b, deltaT);
-						return;
+					
 					}
 			}
 			accelerate(b, deltaT);
@@ -99,7 +99,7 @@ public class Model {
 
 	void accelerate(Ball b, double deltaT) {
 		b.vx += deltaT * 0;
-		b.vy += deltaT * -20.82;
+		b.vy += deltaT * -30.82;
 	}
 
 	void moveBall(Ball b, double deltaT) {
